@@ -1,70 +1,90 @@
 document.addEventListener('keydown', event => { 
     const session = window.sessionStorage;
     var key = event.keyCode;
-    var x = Number(session.getItem("x"));
-    var y = Number(session.getItem("y"));
-    console.log(x + ' - ' + y);
+    var player = JSON.parse(session.getItem("player"));
+    var game = JSON.parse(session.getItem("game"));
+
+    console.log(player.x + ' - ' + player.y);
 
     switch(key) {
-        case 87: 
-
-            y -= 2;
+        case 87: //UP
+            player.y = ((player.y - player.move) < 0) ? 0 : (player.y - player.move);
             break;
-        case 83: 
-            y += 2;
+        case 83: //DOWN
+            player.y = ((player.y + player.height + player.move) > game.height) ? (game.height - player.height) : (player.y + player.move);
             break;
-        case 68: 
-            x += 2;
+        case 65: //LEFT
+            player.x = ((player.x - player.move) < 0) ? 0 : (player.x - player.move);
             break;
-        case 65: 
-            x -= 2;
+        case 68: //RIGHT
+            player.x = ((player.x + player.width + player.move) > game.width) ? (game.width - player.width) : (player.x + player.move);
             break;
     }
 
-    session.setItem('x', x); 
-    session.setItem('y', y);
+    session.setItem('player', JSON.stringify(player)); 
+    session.setItem('game', JSON.stringify(game)); 
 });
+
 
 function startGame() {
     const startWindow = document.getElementById('startGame');
     const session = window.sessionStorage;
-
+    const canvas = document.getElementById('game');
+    const context = canvas.getContext('2d');
+    const player = {
+        x: 0,
+        y: 0,
+        width: 5,
+        height: 5,
+        move: 2,
+        points: 0
+    }
+    const game = {
+        width: canvas.width,
+        height: canvas.height,
+        max_points: 10
+    }
+    const enemies = {
+        quantity: 0
+    }
+    
     startWindow.style.display = 'none';
     
-    session.setItem('x', 0); 
-    session.setItem('y', 0); 
+    session.setItem('player', JSON.stringify(player)); 
+    session.setItem('game', JSON.stringify(game)); 
+    session.setItem('enemies', JSON.stringify(enemies));
     session.setItem('run', true); 
 
     window.requestAnimationFrame(runGame);
 }
 
 function runGame() {
-    const game = document.getElementById('game');
+    const canvas = document.getElementById('game');
+    const context = canvas.getContext('2d');
     const session = window.sessionStorage;
     var run = Boolean(session.getItem("run"));
-    var context = game.getContext('2d');
-    var wid = 5;
-    var hei = 5;
-    var x = Number(session.getItem("x"));
-    var y = Number(session.getItem("y"));
-
-    // console.log(x);
-    // console.log(y);
-    // console.log(run);
+    var player = JSON.parse(session.getItem("player"));
+    var enemies = JSON.parse(session.getItem("enemies"));
+    var game = JSON.parse(session.getItem("game"));
     
     context.clearRect(0, 0, game.width, game.height);
-    drawPlayer(context,x,y,wid,hei);
-    
 
+    drawPlayer(context, player);
+    createEnemies(enemies, player);
+    
     if (run) {
         window.requestAnimationFrame(runGame);
     }
 }
 
-function drawPlayer(context,x,y,wid,hei) {
+function drawPlayer(context, player) {
     context.fillStyle = "#34F00A";     
-    context.fillRect(x, y, wid, hei);
+    context.fillRect(player.x, player.y, player.width, player.height);
     context.save() 
+}
+
+function createEnemies(enemies, player) {
+    //To do
 }
 
 
