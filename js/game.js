@@ -11,9 +11,10 @@ document.addEventListener('keydown', event => {
 
 function startGame() {
     const startWindow = document.getElementById('startGame');
-    const session = window.sessionStorage;
-    const canvas = document.getElementById('game');
-    const context = canvas.getContext('2d');
+    const session     = window.sessionStorage;
+    const canvas      = document.getElementById('game');
+    const context     = canvas.getContext('2d');
+    const hp          = document.getElementById('hp');
     const player = {
         x:      0,
         y:      0,
@@ -21,7 +22,7 @@ function startGame() {
         height: 4,
         move:   3,
         points: 0,
-        hp:     2,
+        hp:     1000,
         color:  "#34F00A"
     };
     const game = {
@@ -34,6 +35,7 @@ function startGame() {
 
     player.x = (game.width/2) - (player.width/2);
     player.y = (game.height/2) - (player.height/2);
+    hp.innerHTML = 'HP: ' +player.hp;
 
     enemies = createEnemies(game, enemies, player);
     
@@ -51,6 +53,7 @@ function startGame() {
 function runGame() {
     const canvas = document.getElementById('game');
     const context = canvas.getContext('2d');
+    const hp = document.getElementById('hp');
     const session = window.sessionStorage;
     var run       = Boolean(session.getItem("run"));
     var player    = JSON.parse(session.getItem("player"));
@@ -58,17 +61,20 @@ function runGame() {
     var game      = JSON.parse(session.getItem("game"));
     
     context.clearRect(0, 0, game.width, game.height);
-
     
     enemies = moveEnemies(enemies, player);
-    
-    drawObject(context, player);
+    const result = checkHit(enemies, player);    
+    player  = result.player;
+    enemies = result.enemies;
+    hp.innerHTML = 'HP: ' +player.hp;
 
     for (const key in enemies) {
         drawObject(context, enemies[key]);    
     }
-    
+    drawObject(context, player);
+
     session.setItem('enemies', JSON.stringify(enemies));
+    session.setItem('player', JSON.stringify(player));
 
     if (run) {
         window.requestAnimationFrame(runGame);
@@ -131,7 +137,6 @@ function movePlayer(player, key, game) {
 function moveEnemies(enemies, player) {
     for (const key in enemies) {
         let move = Math.floor(Math.random() * 2);
-        console.log(move);
         
         if (move == 0) {
             if (player.x > enemies[key].x) {
@@ -148,6 +153,20 @@ function moveEnemies(enemies, player) {
         }
     }
     return enemies;
+}
+
+function checkHit(enemies, player) {
+    for (const key in enemies) {
+        if (((enemies[key].x >= player.x && enemies[key].x <= (player.x + player.width)) || 
+            ((enemies[key].x + enemies[key].width) >= player.x && (enemies[key].x + enemies[key].width) <= (player.x + player.width))) && 
+            ((enemies[key].y >= player.y && enemies[key].y <= (player.y + player.height)) || 
+            ((enemies[key].y + enemies[key].height) >= player.y && (enemies[key].y + enemies[key].height) <= (player.y + player.height)))){
+            
+            player.hp -= 1;
+        } 
+    }
+
+    return {player:player, enemies:enemies};
 }
 
 

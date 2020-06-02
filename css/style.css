@@ -35,3 +35,8 @@ html, body {
     transform: translateY(-50%) translateX(-50%); 
     
 }
+
+#hp {
+    font-weight: bold;
+    font-size: 20px;
+}
