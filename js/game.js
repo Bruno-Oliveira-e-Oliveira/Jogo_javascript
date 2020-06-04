@@ -21,7 +21,7 @@ function startGame() {
         width:  4,
         height: 4,
         move:   3,
-        points: 0,
+        points: 5000,
         hp:     1000,
         color:  "#34F00A"
     };
@@ -29,7 +29,8 @@ function startGame() {
         width:       canvas.width,
         height:      canvas.height,
         max_points:  10,
-        max_enemies: 5
+        max_enemies: 5,
+        status: 'R' // 'R': RUN; 'V': Victory; 'L': Loose;
     };
     var enemies = [];
 
@@ -44,7 +45,6 @@ function startGame() {
     session.setItem('player', JSON.stringify(player)); 
     session.setItem('game', JSON.stringify(game)); 
     session.setItem('enemies', JSON.stringify(enemies));
-    session.setItem('run', true); 
 
     window.requestAnimationFrame(runGame);
 }
@@ -55,7 +55,6 @@ function runGame() {
     const context = canvas.getContext('2d');
     const hp = document.getElementById('hp');
     const session = window.sessionStorage;
-    var run       = Boolean(session.getItem("run"));
     var player    = JSON.parse(session.getItem("player"));
     var enemies   = JSON.parse(session.getItem("enemies"));
     var game      = JSON.parse(session.getItem("game"));
@@ -67,6 +66,7 @@ function runGame() {
     player  = result.player;
     enemies = result.enemies;
     hp.innerHTML = 'HP: ' +player.hp;
+    game = checkStatus(player, game);
 
     for (const key in enemies) {
         drawObject(context, enemies[key]);    
@@ -76,8 +76,16 @@ function runGame() {
     session.setItem('enemies', JSON.stringify(enemies));
     session.setItem('player', JSON.stringify(player));
 
-    if (run) {
-        window.requestAnimationFrame(runGame);
+    switch (game.status) {
+        case 'R':
+            window.requestAnimationFrame(runGame);
+            break;
+        case 'V':
+            alert('Você ganhou!!!');
+            break;
+        case 'L':
+            alert('Você perdeu!!!');
+            break;
     }
 }
 
@@ -114,7 +122,6 @@ function createEnemies(game, enemies, player) {
 
 
 function movePlayer(player, key, game) {
-    console.log(player.x + ' - ' + player.y);
 
     switch(key) {
         case 87: //UP
@@ -162,7 +169,9 @@ function checkHit(enemies, player) {
             ((enemies[key].y >= player.y && enemies[key].y <= (player.y + player.height)) || 
             ((enemies[key].y + enemies[key].height) >= player.y && (enemies[key].y + enemies[key].height) <= (player.y + player.height)))){
             
-            player.hp -= 1;
+            if (player.hp > 0) {
+                player.hp -= 1;
+            }
         } 
     }
 
@@ -170,3 +179,14 @@ function checkHit(enemies, player) {
 }
 
 
+function checkStatus(player, game) {
+    if (player.points == game.max_points) {
+        game.status = 'V'
+    }
+
+    if (player.hp == 0 && game.status != 'V'){
+        game.status = 'L'
+    }
+
+    return game;
+}
