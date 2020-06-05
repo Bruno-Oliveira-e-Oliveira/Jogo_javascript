@@ -13,15 +13,15 @@ function startGame() {
     const startWindow = document.getElementById('startGame');
     const session     = window.sessionStorage;
     const canvas      = document.getElementById('game');
-    const context     = canvas.getContext('2d');
     const hp          = document.getElementById('hp');
+    const coinsLabel  = document.getElementById('coins');
     const player = {
         x:      0,
         y:      0,
         width:  4,
         height: 4,
         move:   3,
-        points: 5000,
+        points: 0,
         hp:     1000,
         color:  "#34F00A"
     };
@@ -30,51 +30,70 @@ function startGame() {
         height:      canvas.height,
         max_points:  10,
         max_enemies: 5,
-        status: 'R' // 'R': RUN; 'V': Victory; 'L': Loose;
+        status: 'R' // 'R': RUN; 'V': Victory; 'L': Lose;
     };
     var enemies = [];
+    var coins   = [];
 
     player.x = (game.width/2) - (player.width/2);
     player.y = (game.height/2) - (player.height/2);
     hp.innerHTML = 'HP: ' +player.hp;
+    coinsLabel.innerHTML = 'Moedas: ' +player.points;
 
-    enemies = createEnemies(game, enemies, player);
+    enemies = createEnemies(game, enemies);
+    coins   = createCoins(game, coins);
     
     startWindow.style.display = 'none';
     
     session.setItem('player', JSON.stringify(player)); 
     session.setItem('game', JSON.stringify(game)); 
     session.setItem('enemies', JSON.stringify(enemies));
+    session.setItem('coins', JSON.stringify(coins));
 
     window.requestAnimationFrame(runGame);
 }
 
 
 function runGame() {
-    const canvas = document.getElementById('game');
-    const context = canvas.getContext('2d');
-    const hp = document.getElementById('hp');
-    const session = window.sessionStorage;
-    var player    = JSON.parse(session.getItem("player"));
-    var enemies   = JSON.parse(session.getItem("enemies"));
-    var game      = JSON.parse(session.getItem("game"));
+    const canvas     = document.getElementById('game');
+    const context    = canvas.getContext('2d');
+    const hp         = document.getElementById('hp');
+    const coinsLabel = document.getElementById('coins');
+    const session    = window.sessionStorage;
+    var player       = JSON.parse(session.getItem("player"));
+    var enemies      = JSON.parse(session.getItem("enemies"));
+    var coins        = JSON.parse(session.getItem("coins"));
+    var game         = JSON.parse(session.getItem("game"));
     
     context.clearRect(0, 0, game.width, game.height);
     
     enemies = moveEnemies(enemies, player);
+
     const result = checkHit(enemies, player);    
     player  = result.player;
     enemies = result.enemies;
     hp.innerHTML = 'HP: ' +player.hp;
+
+    const result2 = checkCoins(coins, player); 
+    player = result2.player;
+    coins  = result2.coins;
+    coinsLabel.innerHTML = 'Moedas: ' +player.points;
+
     game = checkStatus(player, game);
 
     for (const key in enemies) {
         drawObject(context, enemies[key]);    
     }
+    for (const key in coins) {
+        if (!coins[key].caught) {
+            drawObject(context, coins[key]);    
+        }
+    }
     drawObject(context, player);
 
     session.setItem('enemies', JSON.stringify(enemies));
     session.setItem('player', JSON.stringify(player));
+    session.setItem('coins', JSON.stringify(coins));
 
     switch (game.status) {
         case 'R':
@@ -82,9 +101,11 @@ function runGame() {
             break;
         case 'V':
             alert('Você ganhou!!!');
+            resetGame(game);
             break;
         case 'L':
             alert('Você perdeu!!!');
+            resetGame(game);
             break;
     }
 }
@@ -97,7 +118,7 @@ function drawObject(context, object) {
 }
 
 
-function createEnemies(game, enemies, player) {
+function createEnemies(game, enemies) {
     for (let i = 1; i <= game.max_enemies; i++) {
         const enemy = {
             x:      0, 
@@ -109,8 +130,8 @@ function createEnemies(game, enemies, player) {
             color:  "#FA1C0F"
         };
 
-        let x   = Math.floor(Math.random() * game.width);
-        let y   = Math.floor(Math.random() * game.height);
+        let x = Math.floor(Math.random() * game.width);
+        let y = Math.floor(Math.random() * game.height);
         enemy.x = ((x + enemy.width) > game.width) ?  (x - enemy.width) : x;
         enemy.y = ((y + enemy.height) > game.height) ? (y - enemy.height) : y;
 
@@ -118,6 +139,28 @@ function createEnemies(game, enemies, player) {
     }
 
     return enemies;
+}
+
+function createCoins(game, coins) {
+    for (let i = 1; i <= game.max_points; i++) {
+        const coin = {
+            x:      0, 
+            y:      0,
+            width:  4,
+            height: 4,
+            color:  "#E4F609",
+            caught: false
+        };
+
+        let x = Math.floor(Math.random() * game.width);
+        let y = Math.floor(Math.random() * game.height);
+        coin.x = ((x + coin.width) > game.width) ?  (x - coin.width) : x;
+        coin.y = ((y + coin.height) > game.height) ? (y - coin.height) : y;
+
+        coins.push(coin);
+    }
+
+    return coins;
 }
 
 
@@ -162,6 +205,7 @@ function moveEnemies(enemies, player) {
     return enemies;
 }
 
+
 function checkHit(enemies, player) {
     for (const key in enemies) {
         if (((enemies[key].x >= player.x && enemies[key].x <= (player.x + player.width)) || 
@@ -179,6 +223,26 @@ function checkHit(enemies, player) {
 }
 
 
+function checkCoins(coins, player) {
+    var coinSound = document.getElementById('sound');
+    for (const key in coins) {
+        if (((coins[key].x >= player.x && coins[key].x <= (player.x + player.width)) || 
+            ((coins[key].x + coins[key].width) >= player.x && (coins[key].x + coins[key].width) <= (player.x + player.width))) && 
+            ((coins[key].y >= player.y && coins[key].y <= (player.y + player.height)) || 
+            ((coins[key].y + coins[key].height) >= player.y && (coins[key].y + coins[key].height) <= (player.y + player.height)))){
+            
+            if (!coins[key].caught) {
+                player.points += 1;
+                coins[key].caught = true;
+                coinSound.play();
+            }
+        } 
+    }
+
+    return {player:player, coins:coins};
+}
+
+
 function checkStatus(player, game) {
     if (player.points == game.max_points) {
         game.status = 'V'
@@ -189,4 +253,18 @@ function checkStatus(player, game) {
     }
 
     return game;
+}
+
+
+function resetGame(game) {
+    const startWindow = document.getElementById('startGame');
+    const canvas      = document.getElementById('game');
+    const context     = canvas.getContext('2d');
+    const hp          = document.getElementById('hp');
+    const coinsLabel  = document.getElementById('coins');
+
+    context.clearRect(0, 0, game.width, game.height);
+    hp.innerHTML = '';
+    coinsLabel.innerHTML = '';
+    startWindow.style.display = 'block';
 }
