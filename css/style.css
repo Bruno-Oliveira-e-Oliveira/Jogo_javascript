@@ -3,11 +3,26 @@ html, body {
     overflow: hidden;
 }
 
+#status {
+    font-weight: bold;
+    font-size: 20px;
+    width: 100%;
+    text-align: center;
+}
+
+#status h2 {
+    display: inline-block;
+}
+
 #game {
-    width: 800px;
-    height: 500px;
+    width: 60vw;
+    height: 80vh;
     border: blue 5px solid;
     box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%) translateX(-50%);  
 }
 
 #startGame {
@@ -19,23 +34,37 @@ html, body {
     background-color: rgba(0, 0, 0, 0.8);
 }
 
-#startGame button {
-    width: 200px;
-    height: 100px;
-    color: darkred;
-    background-color: darkcyan;
-    font-size: 30px;
-    font-weight: bold;
-    text-transform: uppercase;
+#panel {
+    width: 500px;
+    height: 200px;
     position: absolute;
     z-index: 5000;
     top: 50%;
     left: 50%;
-    box-sizing: content-box;
-    transform: translateY(-50%) translateX(-50%); 
+    transform: translateY(-50%) translateX(-50%);  
+    text-align: center;
+    /* background-color: rgba(255, 255, 255, 0.2); */
+    vertical-align: middle;
 }
 
-#hp, #coins {
+#panel h1 {
     font-weight: bold;
-    font-size: 20px;
+    font-size: 20px;   
+    color: darkcyan;
+    text-transform: uppercase;
+    margin-bottom: 30px;
 }
+
+#panel button {
+    width: 200px;
+    height: 100px;
+    color: blue;
+    background-color: darkcyan;
+    font-size: 30px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 5px blue solid;
+    box-sizing: border-box;
+    border-radius: 5px;
+}
+

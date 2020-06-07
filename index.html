@@ -10,9 +10,11 @@
 </head>
 <body>
 
-    <h2 id='hp'></h2>
-    <h2 id='coins'></h2>
-
+    <div id="status">
+        <h2 id='hp'></h2>
+        <h2 id='coins'></h2>
+    </div>
+    
     <canvas id="game">
         
     </canvas>
@@ -20,8 +22,10 @@
     <audio src="music/coin.wav" id="sound"></audio>
 
     <div id="startGame">
-        <h1>Colete todas as moedas antes que os inimigos te matem.</h1>
-        <button onclick="startGame()">Começar</button>
+        <div id="panel">
+            <h1>Colete todas as moedas antes que os inimigos o matem.</h1>
+            <button onclick="startGame()">Começar</button>
+        </div>
     </div>
 
 </body>
